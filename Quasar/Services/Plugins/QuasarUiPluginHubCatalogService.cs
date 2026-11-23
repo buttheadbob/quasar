@@ -16,6 +16,7 @@ public sealed class QuasarUiPluginHubCatalogService
     private const int CacheSchemaVersion = 1;
     internal const string InstallMetadataFileName = "quasar-ui-plugin-install.json";
     private const string PluginAbstractionsAssemblyFileName = "Quasar.Plugin.Abstractions.dll";
+    private const string UiAbstractionsAssemblyFileName = "Quasar.Ui.Abstractions.dll";
     private const string MagnetarProtocolAssemblyFileName = "Magnetar.Protocol.dll";
     private const string CompanionOutputRelativeDirectory = ".quasar/companions";
     public const string DefaultHubName = "QuasarHub";
@@ -544,6 +545,14 @@ public sealed class QuasarUiPluginHubCatalogService
 
         startInfo.ArgumentList.Add($"-p:QuasarPluginAbstractionsAssembly={abstractionsAssemblyPath}");
 
+        // Optional for compatibility with older workers that predate the
+        // native UI contract. When present, a plugin may reference it; when
+        // absent, its build simply sees no QuasarUiAbstractionsAssembly and
+        // should fall back to its own project reference or skip UI hosts.
+        var uiAbstractionsAssemblyPath = GetUiAbstractionsAssemblyPath();
+        if (!string.IsNullOrWhiteSpace(uiAbstractionsAssemblyPath))
+            startInfo.ArgumentList.Add($"-p:QuasarUiAbstractionsAssembly={uiAbstractionsAssemblyPath}");
+
         await RunProcessAsync(startInfo, "dotnet build", cancellationToken);
     }
 
@@ -601,6 +610,21 @@ public sealed class QuasarUiPluginHubCatalogService
             ?? string.Empty;
     }
 
+    /// <summary>
+    /// Finds <c>Quasar.Ui.Abstractions.dll</c> beside the worker or in an
+    /// adjacent install directory. The path is passed to plugin builds as
+    /// <c>QuasarUiAbstractionsAssembly</c> so a browser plugin compiles against
+    /// the exact contract of the running host.
+    /// </summary>
+    /// <returns>The full path, or an empty string on older installs that do not
+    /// ship the contract yet.</returns>
+    private static string GetUiAbstractionsAssemblyPath()
+    {
+        return EnumerateInstallCandidateDirectories()
+            .Select(directory => Path.Combine(directory, UiAbstractionsAssemblyFileName))
+            .FirstOrDefault(File.Exists)
+            ?? string.Empty;
+    }
     private static string GetMagnetarProtocolAssemblyPath()
     {
         foreach (var directory in EnumerateInstallCandidateDirectories())

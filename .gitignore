@@ -10,6 +10,8 @@
 *.userosscache
 *.sln.docstates
 .quasar-install-dir
+# Local developer build paths (see Directory.Build.props.user.example)
+Directory.Build.props.user
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

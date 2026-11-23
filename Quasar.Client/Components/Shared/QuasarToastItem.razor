@@ -1,0 +1,104 @@
+@namespace Quasar.Components.Shared
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.Extensions.Logging
+@using Quasar.Client.Ui.Toasts
+@using Quasar.Ui
+@inject QuasarToastService Toasts
+@inject ILogger<QuasarToastItem> Logger
+
+@*
+    One native toast.
+
+    Accessibility:
+      - Warning and Error use role="alert" (assertive); other severities use
+        role="status" (polite).
+      - aria-atomic="true" makes the message and action announce as one unit.
+      - The close button has an explicit label rather than an icon-only name.
+
+    Timing:
+      - pointerenter/focusin pause the dismiss timer; pointerleave/focusout
+        resume it with the remaining time. This lets a user read a long message
+        or reach the action button without racing the timer.
+
+    Styling:
+      - quasar-toast and quasar-toast-<severity> are public classes.
+      - Caller Class and Style are appended so plugin CSS can override tokens.
+*@
+<div class="quasar-toast quasar-toast-@SeverityClass @Toast.Options.Class"
+     style="@Toast.Options.Style"
+     role="@Role"
+     aria-atomic="true"
+     @onmouseenter="Pause"
+     @onmouseleave="Resume"
+     @onfocusin="Pause"
+     @onfocusout="Resume">
+    @if (Toast.Options.ShowIcon)
+    {
+        <QuasarIcon Icon="@Icon" Class="quasar-toast-icon" />
+    }
+    <div class="quasar-toast-content">
+        <div class="quasar-toast-message">@Toast.Message</div>
+        @if (ActionText is not null)
+        {
+            <button type="button" class="quasar-button quasar-toast-action" @onclick="RunActionAsync">@ActionText</button>
+        }
+    </div>
+    @if (Toast.Options.Closable)
+    {
+        <QuasarIconButton Label="Dismiss notification" Icon="@QuasarIcons.Close" OnClick="Dismiss" Class="quasar-toast-close" />
+    }
+</div>
+
+@code {
+    /// <summary>The immutable toast model supplied by the host.</summary>
+    [Parameter, EditorRequired] public QuasarToast Toast { get; set; } = default!;
+
+    /// <summary>
+    /// Urgent severities announce immediately. Everything else is polite so a
+    /// stream of routine notifications does not interrupt the user.
+    /// </summary>
+    private string Role => Toast.Severity is QuasarSeverity.Warning or QuasarSeverity.Error ? "alert" : "status";
+
+    /// <summary>CSS suffix used for the severity accent color.</summary>
+    private string SeverityClass => Toast.Severity.ToString().ToLowerInvariant();
+
+    /// <summary>Per-toast icon override, otherwise the severity default.</summary>
+    private string Icon => Toast.Options.Icon ?? QuasarToastIcons.For(Toast.Severity);
+
+    /// <summary>
+    /// Action text is only rendered when the caller supplied it. The service
+    /// also expects an OnAction callback; without one the button closes the
+    /// toast and does nothing else.
+    /// </summary>
+    private string? ActionText => Toast.Options.ActionText;
+
+    /// <summary>Stops the dismiss timer while the pointer is over the toast.</summary>
+    private void Pause() => Toasts.Pause(Toast.Id);
+
+    /// <summary>Restarts the dismiss timer with the remaining time.</summary>
+    private void Resume() => Toasts.Resume(Toast.Id);
+
+    /// <summary>Removes the toast immediately.</summary>
+    private void Dismiss() => Toasts.Remove(Toast.Id);
+
+    /// <summary>
+    /// Runs the optional action, then removes the toast. A failing action is
+    /// logged and does not leave the toast stuck on screen.
+    /// </summary>
+    private async Task RunActionAsync()
+    {
+        if (Toast.Options.OnAction is { } action)
+        {
+            try
+            {
+                await action();
+            }
+            catch (Exception error)
+            {
+                Logger.LogWarning(error, "A toast action failed.");
+            }
+        }
+
+        Toasts.Remove(Toast.Id);
+    }
+}

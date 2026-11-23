@@ -1,4 +1,10 @@
 <Project>
+  <!-- Local developer overrides. This file is ignored by Git; see
+       Directory.Build.props.user.example. Values set here win over the
+       platform defaults below because those defaults are conditional. -->
+  <Import Project="$(MSBuildThisFileDirectory)Directory.Build.props.user"
+          Condition="Exists('$(MSBuildThisFileDirectory)Directory.Build.props.user')" />
+
   <PropertyGroup>
     <!-- Default assembly version for Quasar worker/bootstrap/shared projects.
          Release packaging overrides these via -p:Version=/-p:AssemblyVersion=/etc.
