@@ -137,6 +137,19 @@ public interface IQuasarDialogService
     /// message needs rich content, validation, or more than three choices.
     /// </para>
     /// </remarks>
+    /// <example>
+    /// <code>
+    /// var choice = await Dialogs.ShowMessageBoxAsync(
+    ///     "Delete backup?",
+    ///     "Permanently delete this backup?",
+    ///     yesText: "Delete",
+    ///     noText: "Keep",
+    ///     cancelText: "Cancel");
+    ///
+    /// if (choice == true)
+    ///     DeleteBackup();
+    /// </code>
+    /// </example>
     Task<bool?> ShowMessageBoxAsync(
         string title,
         string message,

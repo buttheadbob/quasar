@@ -38,6 +38,9 @@
         {
             var state = await Sdk.RequestAsync<DashboardPowerState>("power.status", token: token);
             if (state.Stop is { Complete: false } active) { await ObserveStopAsync(active, token); return; }
+
+            // PR2: the power dialog is native. The parameter names and action
+            // result are unchanged; only the service and options types differ.
             var dialog = await Dialogs.ShowAsync<QuasarControlDialog>("Quasar power",
                 new QuasarDialogParameters<QuasarControlDialog>
                 {

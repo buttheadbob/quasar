@@ -132,6 +132,8 @@ internal sealed class QuasarDialogService : IQuasarDialogService, IDisposable
     {
         ArgumentNullException.ThrowIfNull(message);
 
+        // Normalize optional labels once. Empty labels mean "hide that button";
+        // the component applies the same rule when it renders the footer.
         var parameters = new QuasarDialogParameters<QuasarMessageBoxDialog>
         {
             { dialog => dialog.Message, message },
@@ -142,6 +144,10 @@ internal sealed class QuasarDialogService : IQuasarDialogService, IDisposable
 
         var reference = await ShowAsync<QuasarMessageBoxDialog>(title, parameters, options, cancellationToken);
         var result = await reference.Result;
+
+        // The built-in message box closes with a bool payload. Any canceled
+        // path (Escape, backdrop, navigation, token) maps to null, preserving
+        // the familiar bool? result shape.
         return result.Canceled ? null : result.Data is true;
     }
 
