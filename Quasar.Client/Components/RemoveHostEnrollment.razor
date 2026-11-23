@@ -1,8 +1,9 @@
+@using Quasar.Ui
 @using MudBlazor
 @using Microsoft.JSInterop
 @using Quasar.Client.Fleet
 @inject DashboardSdk Sdk
-@inject IDialogService Dialogs
+@inject IQuasarDialogService Dialogs
 
 <MudButton Color="Color.Error" OnClick="RemoveAsync" Disabled="@(Disabled || _busy)">Remove enrollment</MudButton>
 @if (_error is not null) { <MudAlert Severity="Severity.Warning">@_error</MudAlert> }

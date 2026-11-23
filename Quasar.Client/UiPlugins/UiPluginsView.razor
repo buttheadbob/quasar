@@ -1,3 +1,4 @@
+@using Quasar.Ui
 @implements IDisposable
 @using Quasar.Components.Pages
 @using Quasar.Client.Plugins
@@ -6,6 +7,7 @@
 @inject DashboardSdk Sdk
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
+@inject IQuasarDialogService QuasarDialogs
 @inject IJSRuntime JS
 @inject ViewerTimeZone ViewerTime
 
@@ -704,7 +706,7 @@ else
         var pendingUpdate = State.UpdateId;
         if (pendingUpdate is not null)
         {
-            var confirmed = await DialogService.ShowMessageBoxAsync("Update and restart Quasar?",
+            var confirmed = await QuasarDialogs.ShowMessageBoxAsync("Update and restart Quasar?",
                 $"Quasar {State.UpdateVersion} will also be installed during this restart. Running game servers continue to run.",
                 yesText: "Update and Restart Quasar", cancelText: "Cancel");
             if (confirmed != true) return;
@@ -802,7 +804,7 @@ else
             return false;
         }
 
-        var choice = await DialogService.ShowMessageBoxAsync(
+        var choice = await QuasarDialogs.ShowMessageBoxAsync(
             ".NET SDK required",
             $"This UI plugin must be compiled with .NET {_dotNetSdkStatus.RequiredMajorVersion}. " +
             $"Quasar can download verified SDK {_dotNetSdkStatus.PinnedManagedSdkVersion} into {availability.InstallDirectory} without changing system packages or PATH. " +
@@ -849,7 +851,7 @@ else
         if (HubOperationInProgress)
             return;
 
-        var confirmed = await DialogService.ShowMessageBoxAsync(
+        var confirmed = await QuasarDialogs.ShowMessageBoxAsync(
             "Remove UI plugin?",
             $"Remove {GetHubDisplayName(entry)} from the local Quasar UI plugin directory? " +
             $"Restart Quasar to unload active assemblies.{(entry.ImplicitLoading ? " It will stay removed until manually installed." : string.Empty)}",

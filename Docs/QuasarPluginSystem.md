@@ -1033,11 +1033,18 @@ Quasar 1.7.1 adds a native dialog and toast host with a public contract in
   `-p:QuasarUiAbstractionsAssembly=<worker>/Quasar.Ui.Abstractions.dll`; a source
   checkout can use a project reference instead.
 - Inject `IQuasarDialogService` or `IQuasarToastService` in a browser component.
-  `Show<TComponent>` returns the dialog reference immediately and
-  `ShowAsync<TComponent>` is the awaitable convenience overload. Both render the
+  `Show<TComponent>` returns the dialog reference immediately;
+  `ShowAsync<TComponent>` returns the same reference as an awaitable task.
+  Await `reference.Result` for the dialog result. Both render the
   plugin component in a native modal `<dialog>`; the component can inject
   `IQuasarDialogInstance` to close with a `QuasarDialogResult`. Toasts support
   severity, duration, actions, icons, and interaction-required mode.
+- `ShowMessageBoxAsync(title, message, yesText, noText, cancelText, options)`
+  returns `Task<bool?>`: `true` for Yes, `false` for No, and `null` for
+  Cancel, Escape, a backdrop click, navigation, or a canceled token. Omit
+  `noText` or `cancelText` to hide that button. It renders the built-in native
+  message box and does not reference MudBlazor. Use `ShowAsync<TComponent>` for
+  rich content or more than three choices.
 - The host supplies focus trapping, focus return, Escape/backdrop policy, top-layer
   stacking, scroll locking, accessible roles, and the active palette.
 - Set `QuasarDialogOptions.Modal = false` for a modeless dialog. It uses the

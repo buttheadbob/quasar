@@ -1,8 +1,9 @@
+@using Quasar.Ui
 @implements IAsyncDisposable
 @using System.Text.Json
 @using Admin = CometWorks.ClusterGateway.AdminContract.V1
 @inject DashboardSdk Sdk
-@inject IDialogService Dialogs
+@inject IQuasarDialogService Dialogs
 @inject IJSRuntime JS
 
 @if (Cluster.CanManage)

@@ -1,8 +1,9 @@
 using Bunit;
 using Microsoft.Extensions.DependencyInjection;
-using MudBlazor;
-using MudBlazor.Services;
+using Quasar.Client.Ui;
 using Quasar.Components.Layout;
+using Quasar.Components.Shared;
+using Quasar.Ui;
 using Xunit;
 
 namespace Quasar.Tests;
@@ -12,18 +13,27 @@ public sealed class QuasarControlDialogTests
     [Fact]
     public async Task UnavailableRestartIsDisabledAndExplainsRepair()
     {
-        await using var context = new QuasarBunitContext();
-        context.Services.AddMudServices();
+        using var context = new QuasarBunitContext();
+        context.Services.AddLogging();
+        context.Services.AddQuasarUi();
         context.JSInterop.Mode = JSRuntimeMode.Loose;
-        var provider = context.Render<MudDialogProvider>();
-        await provider.InvokeAsync(() => context.Services.GetRequiredService<IDialogService>()
-            .ShowAsync<QuasarControlDialog>("Quasar power", new DialogParameters
+        var host = context.Render<QuasarDialogHost>();
+        var dialogs = context.Services.GetRequiredService<IQuasarDialogService>();
+
+        _ = dialogs.ShowAsync<QuasarControlDialog>("Quasar power",
+            new QuasarDialogParameters<QuasarControlDialog>
             {
-                [nameof(QuasarControlDialog.IsRestartAvailable)] = false,
-                [nameof(QuasarControlDialog.RestartUnavailableReason)] = "Repair the native updater service.",
-            }));
-        Assert.True(provider.FindAll("button").Single(button => button.TextContent.Contains("Restart Quasar")).HasAttribute("disabled"));
-        Assert.Contains("Repair the native updater service.", provider.Markup);
+                { dialog => dialog.IsRestartAvailable, false },
+                { dialog => dialog.RestartUnavailableReason, "Repair the native updater service." },
+            });
+
+        host.WaitForAssertion(() =>
+        {
+            Assert.True(host.FindAll("button")
+                .Single(button => button.TextContent.Contains("Restart Quasar"))
+                .HasAttribute("disabled"));
+            Assert.Contains("Repair the native updater service.", host.Markup);
+        });
     }
 
     [Theory]
@@ -31,20 +41,29 @@ public sealed class QuasarControlDialogTests
     [InlineData("Restart Quasar", QuasarControlAction.RestartQuasar)]
     public async Task ConfirmReturnsSelectedAction(string buttonText, QuasarControlAction action)
     {
-        await using var context = new QuasarBunitContext();
-        context.Services.AddMudServices();
+        using var context = new QuasarBunitContext();
+        context.Services.AddLogging();
+        context.Services.AddQuasarUi();
         context.JSInterop.Mode = JSRuntimeMode.Loose;
-        var provider = context.Render<MudDialogProvider>();
-        IDialogReference dialog = null!;
-        await provider.InvokeAsync(async () => dialog = await context.Services
-            .GetRequiredService<IDialogService>().ShowAsync<QuasarControlDialog>("Quasar power",
-                new DialogParameters { [nameof(QuasarControlDialog.IsRestartAvailable)] = true }));
+        var host = context.Render<QuasarDialogHost>();
+        var dialogs = context.Services.GetRequiredService<IQuasarDialogService>();
 
-        provider.FindAll("button").Single(button => button.TextContent.Contains(buttonText)).Click();
-        provider.FindAll("button").Single(button => button.TextContent.Contains(buttonText)).Click();
+        var reference = await dialogs.ShowAsync<QuasarControlDialog>("Quasar power",
+            new QuasarDialogParameters<QuasarControlDialog>
+            {
+                { dialog => dialog.IsRestartAvailable, true },
+            });
 
-        var result = await dialog.Result.WaitAsync(TimeSpan.FromSeconds(2));
-        Assert.NotNull(result);
+        host.WaitForAssertion(() => Assert.Contains(buttonText, host.Markup));
+
+        host.FindAll("button").Single(button => button.TextContent.Contains(buttonText)).Click();
+        host.FindAll("button").Single(button => button.TextContent.Contains(buttonText)).Click();
+        host.WaitForAssertion(() =>
+            Assert.Contains(context.JSInterop.Invocations, invocation => invocation.Identifier == "quasarUi.dialogs.close"));
+        await host.InvokeAsync(() =>
+            host.FindComponent<QuasarDialogInstanceHost>().Instance.OnNativeClosedAsync("close"));
+
+        var result = await reference.Result.WaitAsync(TimeSpan.FromSeconds(2));
         Assert.False(result.Canceled);
         Assert.Equal(action, result.Data);
     }
@@ -52,21 +71,33 @@ public sealed class QuasarControlDialogTests
     [Fact]
     public async Task RestartConfirmationWarnsBeforeApplyingThePendingUpdate()
     {
-        await using var context = new QuasarBunitContext();
-        context.Services.AddMudServices();
+        using var context = new QuasarBunitContext();
+        context.Services.AddLogging();
+        context.Services.AddQuasarUi();
         context.JSInterop.Mode = JSRuntimeMode.Loose;
-        var provider = context.Render<MudDialogProvider>();
-        IDialogReference dialog = null!;
-        await provider.InvokeAsync(async () => dialog = await context.Services.GetRequiredService<IDialogService>()
-            .ShowAsync<QuasarControlDialog>("Quasar power", new DialogParameters
+        var host = context.Render<QuasarDialogHost>();
+        var dialogs = context.Services.GetRequiredService<IQuasarDialogService>();
+
+        var reference = await dialogs.ShowAsync<QuasarControlDialog>("Quasar power",
+            new QuasarDialogParameters<QuasarControlDialog>
             {
-                [nameof(QuasarControlDialog.IsRestartAvailable)] = true,
-                [nameof(QuasarControlDialog.PendingUpdateVersion)] = "1.6.0.99",
-            }));
-        provider.FindAll("button").Single(button => button.TextContent.Contains("Restart Quasar")).Click();
-        Assert.Contains("Quasar 1.6.0.99 will also be installed during this restart.", provider.Markup);
-        Assert.False(dialog.Result.IsCompleted);
-        provider.FindAll("button").Single(button => button.TextContent.Contains("Update and Restart Quasar")).Click();
-        Assert.Equal(QuasarControlAction.RestartQuasar, (await dialog.Result.WaitAsync(TimeSpan.FromSeconds(2)))!.Data);
+                { dialog => dialog.IsRestartAvailable, true },
+                { dialog => dialog.PendingUpdateVersion, "1.6.0.99" },
+            });
+
+        host.WaitForAssertion(() => Assert.Contains("Restart Quasar", host.Markup));
+        host.FindAll("button").Single(button => button.TextContent.Contains("Restart Quasar")).Click();
+        host.WaitForAssertion(() =>
+            Assert.Contains("Quasar 1.6.0.99 will also be installed during this restart.", host.Markup));
+        Assert.False(reference.Result.IsCompleted);
+
+        host.FindAll("button").Single(button => button.TextContent.Contains("Update and Restart Quasar")).Click();
+        host.WaitForAssertion(() =>
+            Assert.Contains(context.JSInterop.Invocations, invocation => invocation.Identifier == "quasarUi.dialogs.close"));
+        await host.InvokeAsync(() =>
+            host.FindComponent<QuasarDialogInstanceHost>().Instance.OnNativeClosedAsync("close"));
+
+        var result = await reference.Result.WaitAsync(TimeSpan.FromSeconds(2));
+        Assert.Equal(QuasarControlAction.RestartQuasar, result.Data);
     }
 }

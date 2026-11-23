@@ -1,21 +1,22 @@
 @using Microsoft.AspNetCore.Components.Web
 @using Microsoft.JSInterop
-@using MudBlazor
 @using Quasar.Components.Layout
+@using Quasar.Components.Shared
+@using Quasar.Ui
 @inject DashboardSdk Sdk
-@inject IDialogService Dialogs
-@inject ISnackbar Snackbar
+@inject IQuasarDialogService Dialogs
+@inject IQuasarToastService Toasts
 @inject IJSRuntime JS
 @implements IDisposable
 
 <button type="button" class="quasar-icon-button quasar-text-error" aria-label="Quasar power actions"
         title="Quasar power actions" disabled="@_busy" @onclick="OpenAsync">
-    <MudIcon Icon="@Icons.Material.Filled.PowerSettingsNew" />
+    <QuasarIcon Icon="@QuasarIcons.PowerSettingsNew" />
 </button>
 @if (_message is not null)
 {
     <div class="quasar-shutdown-overlay" role="status">
-        <section class="quasar-panel pa-4">
+        <section class="quasar-panel" style="padding:16px">
             <h2>@_title</h2>
             <p>@_message</p>
             @if (!_busy) { <button type="button" class="quasar-button" @onclick="Dismiss">Close</button> }
@@ -37,13 +38,20 @@
         {
             var state = await Sdk.RequestAsync<DashboardPowerState>("power.status", token: token);
             if (state.Stop is { Complete: false } active) { await ObserveStopAsync(active, token); return; }
-            var dialog = await Dialogs.ShowAsync<QuasarControlDialog>("Quasar power", new DialogParameters
-            {
-                [nameof(QuasarControlDialog.IsRestartAvailable)] = state.CanRestart,
-                [nameof(QuasarControlDialog.RestartUnavailableReason)] = state.RestartDetail,
-                [nameof(QuasarControlDialog.PendingUpdateVersion)] = state.UpdateVersion,
-                [nameof(QuasarControlDialog.AgentOfflineShutdownSeconds)] = state.AgentGraceSeconds
-            }, new DialogOptions { CloseOnEscapeKey = true, FullWidth = true, MaxWidth = MaxWidth.Small });
+            var dialog = await Dialogs.ShowAsync<QuasarControlDialog>("Quasar power",
+                new QuasarDialogParameters<QuasarControlDialog>
+                {
+                    { d => d.IsRestartAvailable, state.CanRestart },
+                    { d => d.RestartUnavailableReason, state.RestartDetail },
+                    { d => d.PendingUpdateVersion, state.UpdateVersion },
+                    { d => d.AgentOfflineShutdownSeconds, state.AgentGraceSeconds },
+                },
+                new QuasarDialogOptions
+                {
+                    CloseOnEscapeKey = true,
+                    FullWidth = true,
+                    MaxWidth = QuasarDialogWidth.Small,
+                });
             var result = await dialog.Result;
             if (result is not { Canceled: false, Data: QuasarControlAction action }) return;
             switch (action)
@@ -66,7 +74,7 @@
             }
         }
         catch (Exception) when (token.IsCancellationRequested) { }
-        catch (Exception error) { _message = null; Snackbar.Add(error.Message, Severity.Error); }
+        catch (Exception error) { _message = null; Toasts.Add(error.Message, QuasarSeverity.Error); }
         finally { _busy = false; }
     }
 
@@ -83,7 +91,7 @@
             job = state.Stop;
         }
         _message = null;
-        Snackbar.Add(job.Message, job.Failed ? Severity.Error : Severity.Success);
+        Toasts.Add(job.Message, job.Failed ? QuasarSeverity.Error : QuasarSeverity.Success);
     }
 
     private void Dismiss() => _message = null;

@@ -110,4 +110,39 @@ public interface IQuasarDialogService
         QuasarDialogParameters? parameters = null,
         QuasarDialogOptions? options = null,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Shows a native message box and returns the user's choice.
+    /// </summary>
+    /// <param name="title">Accessible name and visible title.</param>
+    /// <param name="message">Plain-text message. It is rendered as text, not HTML.</param>
+    /// <param name="yesText">Label for the primary button.</param>
+    /// <param name="noText">Optional label for the secondary button. When omitted, no button is shown.</param>
+    /// <param name="cancelText">Optional label for the cancel button. When omitted, no button is shown; Escape and backdrop dismissal still return <c>null</c>.</param>
+    /// <param name="options">Dialog behavior and appearance overrides.</param>
+    /// <param name="cancellationToken">Cancels opening the dialog; the result is <c>null</c>.</param>
+    /// <returns>
+    /// <c>true</c> for Yes, <c>false</c> for No, and <c>null</c> for Cancel,
+    /// Escape, a backdrop click, navigation, or a canceled token.
+    /// </returns>
+    /// <remarks>
+    /// <para>
+    /// This is the native equivalent of the familiar message-box call shape.
+    /// It opens the same managed dialog host as
+    /// <see cref="ShowAsync{TComponent}"/> and does not delegate to MudBlazor
+    /// or any other dialog implementation.
+    /// </para>
+    /// <para>
+    /// Use <see cref="ShowAsync{TComponent}"/> with a custom component when the
+    /// message needs rich content, validation, or more than three choices.
+    /// </para>
+    /// </remarks>
+    Task<bool?> ShowMessageBoxAsync(
+        string title,
+        string message,
+        string yesText = "OK",
+        string? noText = null,
+        string? cancelText = null,
+        QuasarDialogOptions? options = null,
+        CancellationToken cancellationToken = default);
 }

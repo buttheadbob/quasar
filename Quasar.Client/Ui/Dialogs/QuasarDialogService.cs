@@ -120,6 +120,31 @@ internal sealed class QuasarDialogService : IQuasarDialogService, IDisposable
         CancellationToken cancellationToken = default) =>
         Task.FromResult(Show(componentType, title, parameters, options, cancellationToken));
 
+    /// <inheritdoc />
+    public async Task<bool?> ShowMessageBoxAsync(
+        string title,
+        string message,
+        string yesText = "OK",
+        string? noText = null,
+        string? cancelText = null,
+        QuasarDialogOptions? options = null,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(message);
+
+        var parameters = new QuasarDialogParameters<QuasarMessageBoxDialog>
+        {
+            { dialog => dialog.Message, message },
+            { dialog => dialog.YesText, string.IsNullOrWhiteSpace(yesText) ? "OK" : yesText.Trim() },
+            { dialog => dialog.NoText, string.IsNullOrWhiteSpace(noText) ? null : noText.Trim() },
+            { dialog => dialog.CancelText, string.IsNullOrWhiteSpace(cancelText) ? null : cancelText.Trim() },
+        };
+
+        var reference = await ShowAsync<QuasarMessageBoxDialog>(title, parameters, options, cancellationToken);
+        var result = await reference.Result;
+        return result.Canceled ? null : result.Data is true;
+    }
+
     /// <summary>An immutable snapshot of the open entries, oldest first.</summary>
     internal IReadOnlyList<QuasarDialogEntry> Entries
     {

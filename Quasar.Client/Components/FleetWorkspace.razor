@@ -1,3 +1,4 @@
+@using Quasar.Ui
 @using Quasar.Client.Fleet
 @using Quasar.Client.Clusters
 @using Quasar.Components.Pages
@@ -10,6 +11,7 @@
 @inject DashboardSdk Sdk
 @inject NavigationManager Navigation
 @inject IDialogService Dialogs
+@inject IQuasarDialogService QuasarDialogs
 @inject ISnackbar Snackbar
 @inject IJSRuntime JS
 
@@ -270,7 +272,7 @@ else
         {
             if(operation is "servers.stop" or "fleet.kill" or "cluster.stop"){
                 bool force=operation=="fleet.kill";
-                if(await Dialogs.ShowMessageBoxAsync(force?"Kill starting server?":"Gracefully stop?",force?$"Forcefully terminate {r.DisplayName} during startup?":$"Save and stop {r.DisplayName}?",yesText:force?"Kill process":"Stop",cancelText:"Cancel")!=true)return;
+                if(await QuasarDialogs.ShowMessageBoxAsync(force?"Kill starting server?":"Gracefully stop?",force?$"Forcefully terminate {r.DisplayName} during startup?":$"Save and stop {r.DisplayName}?",yesText:force?"Kill process":"Stop",cancelText:"Cancel")!=true)return;
             }
             var target=new {r.UniqueName};
             if(operation=="cluster.start" && !await Sdk.RequestAsync<bool>("cluster.start.available",target)) throw new InvalidOperationException("Wait for a stable stopped Gateway before starting.");

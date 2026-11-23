@@ -1,117 +1,130 @@
 @namespace Quasar.Components.Layout
-@using MudBlazor
-<MudDialog>
-    <TitleContent>
-        <h2 class="quasar-text quasar-type-h6">Quasar power</h2>
-    </TitleContent>
-    <DialogContent>
-        @if (_pendingAction is null)
-        {
-            <div class="quasar-layout quasar-gap-2">
-                <MudButton Variant="Variant.Outlined"
-                           Color="Color.Warning"
-                           StartIcon="@Icons.Material.Filled.RestartAlt"
-                           Disabled="@(!IsRestartAvailable)"
-                           OnClick="@(() => Select(QuasarControlAction.RestartQuasar))"
-                           Class="quasar-control-action">
-                    <span>
-                        <span class="quasar-control-action-title">Restart Quasar</span>
-                        <span class="quasar-control-action-body">Servers continue to run while the web UI restarts.</span>
-                    </span>
-                </MudButton>
-                @if (!IsRestartAvailable)
-                {
-                    <span class="quasar-text quasar-type-caption quasar-tone-@((Color.Secondary).ToString().ToLowerInvariant())">
-                        @RestartUnavailableReason
-                    </span>
-                }
+@using Microsoft.AspNetCore.Components.Web
+@using Quasar.Components.Shared
+@using Quasar.Ui
 
-                <MudButton Variant="Variant.Outlined"
-                           Color="Color.Error"
-                           StartIcon="@Icons.Material.Filled.PowerSettingsNew"
-                           OnClick="@(() => Select(QuasarControlAction.ShutdownQuasar))"
-                           Class="quasar-control-action">
-                    <span>
-                        <span class="quasar-control-action-title">Shutdown Quasar</span>
-                        <span class="quasar-control-action-body">Stop Quasar; servers continue without supervision.</span>
-                    </span>
-                </MudButton>
+@*
+    Quasar power actions, rendered as a native dialog.
 
-                <MudButton Variant="Variant.Outlined"
-                           Color="Color.Error"
-                           StartIcon="@Icons.Material.Filled.StopCircle"
-                           OnClick="@(() => Select(QuasarControlAction.ShutdownAllServers))"
-                           Class="quasar-control-action">
-                    <span>
-                        <span class="quasar-control-action-title">Save and stop all servers</span>
-                        <span class="quasar-control-action-body">Save and stop standalone servers and managed clusters. Quasar stays online and shows progress.</span>
-                    </span>
-                </MudButton>
-            </div>
-        }
-        else
-        {
-            <div class="quasar-layout quasar-gap-3">
-                <MudAlert Severity="@ConfirmationSeverity" Variant="Variant.Outlined">
-                    @ConfirmationLead
-                </MudAlert>
-                <p class="quasar-text quasar-type-body2">@ConfirmationBody</p>
-            </div>
-        }
-    </DialogContent>
-    <DialogActions>
-        @if (_pendingAction is null)
-        {
-            <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">Close</MudButton>
-        }
-        else
-        {
-            <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Back">Back</MudButton>
-            <MudButton Variant="Variant.Filled"
-                       Color="@ConfirmationButtonColor"
-                       StartIcon="@ConfirmationIcon"
-                       OnClick="Confirm">
-                @ConfirmationButtonText
-            </MudButton>
-        }
-    </DialogActions>
-</MudDialog>
+    PR2 migration: this component no longer uses MudDialog, MudButton, MudAlert,
+    MudIcon, or IMudDialogInstance. The native host supplies the top layer,
+    focus management, Escape/backdrop policy, and theme. The component only
+    requests closure through IQuasarDialogInstance.
+
+    The action/confirmation flow is unchanged: selecting an action replaces the
+    choice list with a confirmation, Back returns to the list, and Confirm
+    closes with the selected QuasarControlAction.
+*@
+<header class="quasar-dialog-header">
+    <h2 class="quasar-dialog-title">Quasar power</h2>
+</header>
+<div class="quasar-dialog-content">
+    @if (_pendingAction is null)
+    {
+        <div class="quasar-layout quasar-gap-2">
+            <button type="button"
+                    class="quasar-button quasar-control-action quasar-tone-warning"
+                    disabled="@(!IsRestartAvailable)"
+                    @onclick="() => Select(QuasarControlAction.RestartQuasar)">
+                <QuasarIcon Icon="@QuasarIcons.RestartAlt" />
+                <span>
+                    <span class="quasar-control-action-title">Restart Quasar</span>
+                    <span class="quasar-control-action-body">Servers continue to run while the web UI restarts.</span>
+                </span>
+            </button>
+            @if (!IsRestartAvailable)
+            {
+                <span class="quasar-text quasar-type-caption quasar-tone-secondary">@RestartUnavailableReason</span>
+            }
+
+            <button type="button"
+                    class="quasar-button quasar-control-action quasar-tone-error"
+                    @onclick="() => Select(QuasarControlAction.ShutdownQuasar)">
+                <QuasarIcon Icon="@QuasarIcons.PowerSettingsNew" />
+                <span>
+                    <span class="quasar-control-action-title">Shutdown Quasar</span>
+                    <span class="quasar-control-action-body">Stop Quasar; servers continue without supervision.</span>
+                </span>
+            </button>
+
+            <button type="button"
+                    class="quasar-button quasar-control-action quasar-tone-error"
+                    @onclick="() => Select(QuasarControlAction.ShutdownAllServers)">
+                <QuasarIcon Icon="@QuasarIcons.StopCircle" />
+                <span>
+                    <span class="quasar-control-action-title">Save and stop all servers</span>
+                    <span class="quasar-control-action-body">Save and stop standalone servers and managed clusters. Quasar stays online and shows progress.</span>
+                </span>
+            </button>
+        </div>
+    }
+    else
+    {
+        <div class="quasar-layout quasar-gap-3">
+            <div class="quasar-notice @ConfirmationNoticeClass" role="status">@ConfirmationLead</div>
+            <p class="quasar-text quasar-type-body2">@ConfirmationBody</p>
+        </div>
+    }
+</div>
+<footer class="quasar-dialog-actions">
+    @if (_pendingAction is null)
+    {
+        <button type="button" class="quasar-button" @onclick="Cancel">Close</button>
+    }
+    else
+    {
+        <button type="button" class="quasar-button" @onclick="Back">Back</button>
+        <button type="button" class="quasar-button quasar-button-fill @ConfirmationToneClass" @onclick="Confirm">
+            <QuasarIcon Icon="@ConfirmationIcon" />
+            @ConfirmationButtonText
+        </button>
+    }
+</footer>
 
 @code {
+    /// <summary>
+    /// Cascaded by the native dialog host. The component requests closure; the
+    /// caller owns the result task.
+    /// </summary>
     [CascadingParameter]
-    private IMudDialogInstance MudDialog { get; set; } = default!;
+    private IQuasarDialogInstance Dialog { get; set; } = default!;
 
+    /// <summary>Whether the restart action is available on this host.</summary>
     [Parameter]
     public bool IsRestartAvailable { get; set; }
 
+    /// <summary>Explanation shown when restart is unavailable.</summary>
     [Parameter]
     public string RestartUnavailableReason { get; set; } = "Restart needs verified native services or the legacy Bootstrap launcher. Restart this process manually.";
 
+    /// <summary>Grace period granted to agents after Quasar stops.</summary>
     [Parameter]
     public int AgentOfflineShutdownSeconds { get; set; }
 
+    /// <summary>Version installed by a pending update, if any.</summary>
     [Parameter]
     public string? PendingUpdateVersion { get; set; }
 
     private QuasarControlAction? _pendingAction;
 
-    private Severity ConfirmationSeverity => _pendingAction switch
-    {
-        QuasarControlAction.RestartQuasar when PendingUpdateVersion is null => Severity.Info,
-        _ => Severity.Warning,
-    };
+    /// <summary>
+    /// Restart without a pending update is informational; the destructive
+    /// actions use the warning border.
+    /// </summary>
+    private string? ConfirmationNoticeClass =>
+        _pendingAction is QuasarControlAction.RestartQuasar && PendingUpdateVersion is null
+            ? null
+            : "quasar-notice-warning";
 
-    private Color ConfirmationButtonColor => _pendingAction switch
-    {
-        QuasarControlAction.RestartQuasar => Color.Warning,
-        _ => Color.Error,
-    };
+    /// <summary>Warning tone for restart, error tone for shutdown actions.</summary>
+    private string ConfirmationToneClass =>
+        _pendingAction is QuasarControlAction.RestartQuasar ? "quasar-tone-warning" : "quasar-tone-error";
 
     private string ConfirmationIcon => _pendingAction switch
     {
-        QuasarControlAction.RestartQuasar => Icons.Material.Filled.RestartAlt,
-        QuasarControlAction.ShutdownAllServers => Icons.Material.Filled.StopCircle,
-        _ => Icons.Material.Filled.PowerSettingsNew,
+        QuasarControlAction.RestartQuasar => QuasarIcons.RestartAlt,
+        QuasarControlAction.ShutdownAllServers => QuasarIcons.StopCircle,
+        _ => QuasarIcons.PowerSettingsNew,
     };
 
     private string ConfirmationButtonText => _pendingAction switch
@@ -153,13 +166,13 @@
 
     private void Cancel()
     {
-        MudDialog.Cancel();
+        Dialog.Cancel();
     }
 
     private void Confirm()
     {
         if (_pendingAction is { } action)
-            MudDialog.Close(DialogResult.Ok(action));
+            Dialog.Close(QuasarDialogResult.Ok(action));
     }
 
     private string FormatOfflineGrace()

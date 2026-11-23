@@ -1,7 +1,8 @@
+@using Quasar.Ui
 @implements IAsyncDisposable
 @using Admin = CometWorks.ClusterGateway.AdminContract.V1
 @inject DashboardSdk Sdk
-@inject IDialogService Dialogs
+@inject IQuasarDialogService Dialogs
 @inject ViewerTimeZone ViewerTime
 
 <section class="quasar-panel server-card">

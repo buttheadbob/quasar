@@ -413,8 +413,9 @@ dashboard/setup/runtime preparation, server list/cards/details, cluster overview
 and administration, notifications, and server listing settings. Shared native page headings/panels/layout now cover operational routes,
 configuration editors, and dialogs. Native dialog and toast hosts are mounted in
 the themed shell and are available to core components and, through
-`Quasar.Ui.Abstractions`, to browser plugins. Remaining behavioral Mud controls
-and unmigrated dialog/snackbar call sites still require MudBlazor.
+`Quasar.Ui.Abstractions`, to browser plugins. The shell power dialog and core
+message boxes use the native host; remaining custom dialogs, snackbars, and
+behavioral Mud controls still require MudBlazor.
 The external viewer and UI plugin template have native controls and preview
 hosts without that dependency. See the [migration record](Design/QuasarUiRewrite.md)
 for the workflow inventory and verification limits.

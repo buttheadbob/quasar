@@ -1,3 +1,4 @@
+@using Quasar.Ui
 @using System.Text.Json
 @using Microsoft.AspNetCore.Components.Web
 @using Microsoft.JSInterop
@@ -514,6 +515,9 @@
     private IDialogService DialogService { get; set; } = default!;
 
     [Inject]
+    private IQuasarDialogService QuasarDialogs { get; set; } = default!;
+
+    [Inject]
     private ISnackbar Snackbar { get; set; } = default!;
 
     private MudForm? _form;
@@ -773,7 +777,7 @@
         _disableImplicitMagnetarModLoadDialogOpen = true;
         try
         {
-            var confirmed = await DialogService.ShowMessageBoxAsync(
+            var confirmed = await QuasarDialogs.ShowMessageBoxAsync(
                 "Disable implicit Magnetar mod load",
                 DisableImplicitMagnetarModLoadWarning,
                 yesText: "Disable",
@@ -804,7 +808,7 @@
             string? replacement = null;
             if (_isClone)
             {
-                var choice = await DialogService.ShowMessageBoxAsync("Clone world state?",
+                var choice = await QuasarDialogs.ShowMessageBoxAsync("Clone world state?",
                     _setup.Active ? "Copy from the source server’s latest Space Engineers Backup snapshot, or keep the selected target save?" :
                         "Copy the stopped source server’s world, or keep the selected target save?", yesText:"Copy World",noText:"Keep Save",cancelText:"Cancel");
                 if (choice is null) return;
@@ -812,7 +816,7 @@
                 if (copy && _paths?.Available.Any(s => s.Valid && s.Name == _editor.WorldSaveName) == true)
                 {
                     replacement = _paths.Selected;
-                    if (await DialogService.ShowMessageBoxAsync("Replace existing clone world?", $"Replace the world save at {replacement} with the source world?",
+                    if (await QuasarDialogs.ShowMessageBoxAsync("Replace existing clone world?", $"Replace the world save at {replacement} with the source world?",
                         yesText:"Replace World",cancelText:"Cancel") != true) return;
                 }
             }

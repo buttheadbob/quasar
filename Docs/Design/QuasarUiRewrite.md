@@ -159,6 +159,13 @@ console interior uses native log-source buttons, file selectors, downloads,
 and error/refresh controls; existing log loading, history, auto-refresh, and
 keyboard rollover are retained.
 
+The first production migration slice uses the native host for the Quasar power
+dialog and the core message-box call sites through
+`IQuasarDialogService.ShowMessageBoxAsync`. The message-box method keeps the
+familiar title/message/yes/no/cancel shape and returns `bool?`; it does not
+delegate to MudBlazor. Remaining custom dialogs and snackbar call sites stay in
+the inventory below.
+
 The sidebar brand row and top bar share an inset separator so their horizontal
 edges meet consistently at fractional browser zoom levels.
 
@@ -210,7 +217,7 @@ need an explicitly requested smoketest.
 
 | Area | Work remaining |
 | --- | --- |
-| Shared infrastructure | Native dialog and toast hosts, `Quasar.Ui.Abstractions`, and plugin build wiring are delivered; migrate the remaining `IDialogService`/`ISnackbar` consumers and installed plugins. |
+| Shared infrastructure | Native dialog and toast hosts, `Quasar.Ui.Abstractions`, plugin build wiring, the shell power dialog, and core message-box call sites are delivered; migrate the remaining custom dialog/snackbar consumers and installed plugins. |
 | Server management | Replace remaining behavioral Mud controls and dialog host in creation/edit/clone/deletion/import, world/template/profile dialogs, filesystem picker, and the native console. |
 | Configuration | Profiles, world templates, Workshop credentials, pending changes, PluginSdk schema editor, and plugin logs. |
 | Clusters and hosts | Guided setup/conversion/enrollment, cluster route/console/remove dialogs, deployment/content/fleet panels, and recovery workflows. |

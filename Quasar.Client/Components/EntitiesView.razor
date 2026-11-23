@@ -1,3 +1,4 @@
+@using Quasar.Ui
 @implements IDisposable
 @using Microsoft.AspNetCore.Components.Web
 @using Microsoft.JSInterop
@@ -8,7 +9,7 @@
 @inject DashboardSdk Sdk
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
-@inject IDialogService DialogService
+@inject IQuasarDialogService DialogService
 @inject ISnackbar Snackbar
 @inject ViewerTimeZone ViewerTime
 

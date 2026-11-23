@@ -1,3 +1,4 @@
+@using Quasar.Ui
 @using System.Globalization
 @using System.Text.Json
 @using System.Text.RegularExpressions
@@ -5,6 +6,7 @@
 @inject ISnackbar Snackbar
 @inject IJSRuntime JS
 @inject IDialogService DialogService
+@inject IQuasarDialogService QuasarDialogs
 @inject ViewerTimeZone ViewerTime
 
 @if (_loadError is not null)
@@ -1451,7 +1453,7 @@ else
             return;
         }
 
-        var confirmed = await DialogService.ShowMessageBoxAsync(
+        var confirmed = await QuasarDialogs.ShowMessageBoxAsync(
             "Clear all mods?",
             $"{_editor.Mods.Count} mod(s) will be removed from the pending config profile changes. Save the profile to persist this change.",
             yesText: "Clear Mods",
@@ -1629,7 +1631,7 @@ else
         var sourceName = string.IsNullOrWhiteSpace(_editor.Name)
             ? "current profile"
             : _editor.Name.Trim();
-        var confirmed = await DialogService.ShowMessageBoxAsync(
+        var confirmed = await QuasarDialogs.ShowMessageBoxAsync(
             "Clone profile for crossplay?",
             $"A new profile will be created from '{sourceName}' with EOS networking, Cross Platform enabled, Experimental Mode disabled, and all mods removed. The current profile will not be changed.",
             yesText: "Clone",
@@ -1657,7 +1659,7 @@ else
 
         var profile = GetProfile(configProfileId);
         var profileName = profile?.Name ?? configProfileId;
-        var confirmed = await DialogService.ShowMessageBoxAsync(
+        var confirmed = await QuasarDialogs.ShowMessageBoxAsync(
             "Delete config profile?",
             $"'{profileName}' will be permanently removed. This cannot be undone.",
             yesText: "Delete",
@@ -1676,7 +1678,7 @@ else
 
     private async Task ResetEditorAsync()
     {
-        var confirmed = await DialogService.ShowMessageBoxAsync(
+        var confirmed = await QuasarDialogs.ShowMessageBoxAsync(
             "Reset config profile?",
             "Pending editor changes will be discarded and the profile will be reloaded from disk.",
             yesText: "Reset",
@@ -3020,7 +3022,7 @@ else
 
     private async Task<bool> ConfirmDestructiveActionAsync(string title, string message, string yesText)
     {
-        var confirmed = await DialogService.ShowMessageBoxAsync(
+        var confirmed = await QuasarDialogs.ShowMessageBoxAsync(
             title,
             message,
             yesText: yesText,

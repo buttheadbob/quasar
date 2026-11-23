@@ -204,6 +204,7 @@ body { font-family: "DM Sans", system-ui, sans-serif; }
 .quasar-form-section .quasar-upload-hint { font-size: 10px; }
 .quasar-notice { padding: 12px 15px; margin-bottom: 16px; border: 1px solid var(--quasar-palette-lines-default); border-left: 3px solid var(--quasar-palette-info); border-radius: 4px; background: var(--quasar-palette-surface); font-size: 12px; }
 .quasar-notice-error { border-left-color: var(--quasar-palette-error); }
+.quasar-notice-warning { border-left-color: var(--quasar-palette-warning); }
 .quasar-notice-success { border-left-color: var(--quasar-palette-success); }
 .quasar-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-bottom: 20px; border: 1px solid var(--quasar-palette-lines-default); border-radius: 6px; background: var(--quasar-palette-surface); overflow: hidden; }
 .quasar-metric { padding: 14px 18px; border-right: 1px solid var(--quasar-palette-divider); }
@@ -970,6 +971,7 @@ html.quasar-dialog-open {
    width, while still respecting the dialog's maximum. */
 .quasar-dialog-full-width {
     width: calc(100% - 2rem);
+    max-width: var(--quasar-dialog-max-width);
 }
 
 /* Header: title and optional close button. It never scrolls, so the close

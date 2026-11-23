@@ -1,3 +1,4 @@
+@using Quasar.Ui
 @using MudBlazor
 @using Microsoft.AspNetCore.Components.Web
 @using System.Globalization
@@ -69,7 +70,7 @@ else
 
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
 
-    [Inject] private IDialogService DialogService { get; set; } = default!;
+    [Inject] private IQuasarDialogService DialogService { get; set; } = default!;
 
     private PluginConfigEnvelope? _envelope;
     private JsonObject _values = new();

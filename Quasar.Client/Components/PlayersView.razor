@@ -1,3 +1,4 @@
+@using Quasar.Ui
 @using MudBlazor
 @using Microsoft.JSInterop
 @using Quasar.Client.Operations
@@ -6,7 +7,7 @@
 @inject IJSRuntime JS
 @inject ViewerTimeZone ViewerTime
 @inject ISnackbar Snackbar
-@inject IDialogService DialogService
+@inject IQuasarDialogService DialogService
 @implements IDisposable
 
 @if (_error is not null) { <MudAlert Severity="Severity.Error">@_error</MudAlert> }

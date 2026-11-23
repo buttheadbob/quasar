@@ -38,6 +38,10 @@ Per-call `Class`/`Style`, the documented
 that do not use the shared hosts keep the native HTML/CSS path and need no new
 reference.
 
+For simple confirmations, `IQuasarDialogService.ShowMessageBoxAsync` uses the
+same native host and returns `bool?`: `true` for Yes, `false` for No, and
+`null` for Cancel or dismissal.
+
 A modeless panel with `CloseOnNavigation = false` stays open while the admin
 moves between pages. A plugin can feed it live data from its worker half through
 the browser operation SDK, so a performance or status panel keeps updating on

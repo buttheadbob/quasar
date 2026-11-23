@@ -1,7 +1,9 @@
+@using Quasar.Ui
 @implements IDisposable
 @inject DashboardSdk Sdk
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
+@inject IQuasarDialogService QuasarDialogs
 @inject IJSRuntime JS
 @inject ViewerTimeZone ViewerTime
 
@@ -636,7 +638,7 @@ else
             {
                 if (!_servers.Any(server => server.Running && string.Equals(server.UniqueName, uniqueName, StringComparison.OrdinalIgnoreCase)))
                     throw new InvalidOperationException("Wait for the server to finish starting, stopping, or restarting before backing up its world.");
-                var choice = await DialogService.ShowMessageBoxAsync(
+                var choice = await QuasarDialogs.ShowMessageBoxAsync(
                     "Back up world now?",
                     "Save and back up waits for a fresh world save and keeps the server running. " +
                     "Stop and back up saves the world, stops the server, and then backs it up. The server stays stopped.",
@@ -744,7 +746,7 @@ else
 
     private async Task DeleteAsync(string name)
     {
-        var confirmed = await DialogService.ShowMessageBoxAsync(
+        var confirmed = await QuasarDialogs.ShowMessageBoxAsync(
             "Delete backup?",
             $"Permanently delete '{name}'?",
             yesText: "Delete",
@@ -766,7 +768,7 @@ else
 
     private async Task<bool> ConfirmRestoreAsync()
     {
-        var confirmed = await DialogService.ShowMessageBoxAsync(
+        var confirmed = await QuasarDialogs.ShowMessageBoxAsync(
             "Restore backup?",
             "This restores the selected ZIP according to its backup type. Configuration backups merge by ID; server backups restore server definition plus non-cache app data; world backups restore save files. Restored server definitions come back stopped. Continue?",
             yesText: "Restore",
@@ -786,7 +788,7 @@ else
                 "This overwrites Quasar settings that share an ID with the backup. Items with different IDs are kept (merge). Restored server definitions come back stopped. Continue?",
         };
 
-        var confirmed = await DialogService.ShowMessageBoxAsync(
+        var confirmed = await QuasarDialogs.ShowMessageBoxAsync(
             "Restore backup?",
             message,
             yesText: "Restore",

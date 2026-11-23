@@ -1,8 +1,10 @@
+@using Quasar.Ui
 @using Quasar.Services.Auth
 @implements IDisposable
 @inject DashboardSdk Sdk
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
+@inject IQuasarDialogService QuasarDialogs
 @inject IJSRuntime JS
 
 <PageTitle>Security</PageTitle>
@@ -390,7 +392,7 @@ else
 
     private async Task RemoveMappingAsync(RoleMapping mapping)
     {
-        var confirmed = await DialogService.ShowMessageBoxAsync(
+        var confirmed = await QuasarDialogs.ShowMessageBoxAsync(
             "Remove RBAC mapping?",
             $"Mapping for '{mapping.Subject}' will be removed. The subject loses any roles granted by it.",
             yesText: "Remove",

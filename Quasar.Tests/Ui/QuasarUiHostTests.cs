@@ -111,6 +111,51 @@ public sealed class QuasarUiHostTests
         });
     }
 
+    [Theory]
+    [InlineData("Delete", true)]
+    [InlineData("Keep", false)]
+    [InlineData("Cancel", null)]
+    public async Task MessageBoxRendersChoicesAndMapsResult(string buttonText, bool? expected)
+    {
+        using var context = CreateContext();
+        var cut = context.Render<QuasarDialogHost>();
+        var dialogs = context.Services.GetRequiredService<IQuasarDialogService>();
+
+        var task = dialogs.ShowMessageBoxAsync("Delete backup?", "Permanently delete it?", "Delete", "Keep", "Cancel");
+        cut.WaitForAssertion(() => Assert.Contains("Permanently delete it?", cut.Markup));
+
+        cut.FindAll("button").Single(button => button.TextContent.Trim() == buttonText).Click();
+        cut.WaitForAssertion(() =>
+            Assert.Contains(context.JSInterop.Invocations, invocation => invocation.Identifier == "quasarUi.dialogs.close"));
+        await cut.InvokeAsync(() =>
+            cut.FindComponent<QuasarDialogInstanceHost>().Instance.OnNativeClosedAsync("close"));
+
+        Assert.Equal(expected, await task);
+    }
+
+    [Fact]
+    public async Task MessageBoxHidesOptionalNoButton()
+    {
+        using var context = CreateContext();
+        var cut = context.Render<QuasarDialogHost>();
+        var dialogs = context.Services.GetRequiredService<IQuasarDialogService>();
+
+        var task = dialogs.ShowMessageBoxAsync("Question", "Choose", "OK", cancelText: "Cancel");
+        cut.WaitForAssertion(() =>
+        {
+            var labels = cut.FindAll("button").Select(button => button.TextContent.Trim()).ToArray();
+            Assert.Equal(["Cancel", "OK"], labels);
+        });
+
+        cut.FindAll("button").Single(button => button.TextContent.Trim() == "Cancel").Click();
+        cut.WaitForAssertion(() =>
+            Assert.Contains(context.JSInterop.Invocations, invocation => invocation.Identifier == "quasarUi.dialogs.close"));
+        await cut.InvokeAsync(() =>
+            cut.FindComponent<QuasarDialogInstanceHost>().Instance.OnNativeClosedAsync("close"));
+
+        Assert.Null(await task);
+    }
+
     private static QuasarBunitContext CreateContext()
     {
         var context = new QuasarBunitContext();
