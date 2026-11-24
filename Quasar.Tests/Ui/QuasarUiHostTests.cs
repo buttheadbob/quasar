@@ -32,7 +32,6 @@ public sealed class QuasarUiHostTests
         cut.WaitForAssertion(() =>
             Assert.Contains(context.JSInterop.Invocations, invocation => invocation.Identifier == "quasarUi.dialogs.close"));
 
-        await cut.InvokeAsync(() => cut.FindComponent<QuasarDialogInstanceHost>().Instance.OnNativeClosedAsync("close"));
         cut.WaitForAssertion(() => Assert.Empty(cut.FindAll("dialog")));
         var result = await reference.Result;
         Assert.False(result.Canceled);
@@ -127,9 +126,6 @@ public sealed class QuasarUiHostTests
         cut.FindAll("button").Single(button => button.TextContent.Trim() == buttonText).Click();
         cut.WaitForAssertion(() =>
             Assert.Contains(context.JSInterop.Invocations, invocation => invocation.Identifier == "quasarUi.dialogs.close"));
-        await cut.InvokeAsync(() =>
-            cut.FindComponent<QuasarDialogInstanceHost>().Instance.OnNativeClosedAsync("close"));
-
         Assert.Equal(expected, await task);
     }
 
@@ -150,9 +146,6 @@ public sealed class QuasarUiHostTests
         cut.FindAll("button").Single(button => button.TextContent.Trim() == "Cancel").Click();
         cut.WaitForAssertion(() =>
             Assert.Contains(context.JSInterop.Invocations, invocation => invocation.Identifier == "quasarUi.dialogs.close"));
-        await cut.InvokeAsync(() =>
-            cut.FindComponent<QuasarDialogInstanceHost>().Instance.OnNativeClosedAsync("close"));
-
         Assert.Null(await task);
     }
 

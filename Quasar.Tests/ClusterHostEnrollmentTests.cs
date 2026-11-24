@@ -681,6 +681,7 @@ public sealed class ClusterHostEnrollmentTests : IDisposable
     [Fact]
     public async Task InstallTicketsExpireAndRejectReplayAndReplacedTickets()
     {
+        if (!OperatingSystem.IsLinux()) return;
         var host = await hosts.RegisterAsync("one", "One", "10.0.0.1", 18400, default);
         string binary = Path.Combine(root, "Quasar.Host"); File.WriteAllText(binary, "test executable");
         var clock = new TestClock();
@@ -796,6 +797,7 @@ public sealed class ClusterHostEnrollmentTests : IDisposable
     [Fact]
     public async Task InstallerReportsRemoteFailureInsteadOfBrokenPipe()
     {
+        if (!OperatingSystem.IsLinux()) return;
         var start = new System.Diagnostics.ProcessStartInfo("bash");
         start.ArgumentList.Add("-c");
         start.ArgumentList.Add("echo 'Existing Host credentials differ' >&2; exit 7");

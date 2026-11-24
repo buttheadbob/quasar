@@ -57,11 +57,9 @@ public sealed class QuasarControlDialogTests
         host.WaitForAssertion(() => Assert.Contains(buttonText, host.Markup));
 
         host.FindAll("button").Single(button => button.TextContent.Contains(buttonText)).Click();
+        host.FindAll("button").Single(button => button.TextContent.Contains(buttonText)).Click();
         host.WaitForAssertion(() =>
             Assert.Contains(context.JSInterop.Invocations, invocation => invocation.Identifier == "quasarUi.dialogs.close"));
-        await host.InvokeAsync(() =>
-            host.FindComponent<QuasarDialogInstanceHost>().Instance.OnNativeClosedAsync("close"));
-
         var result = await reference.Result.WaitAsync(TimeSpan.FromSeconds(2));
         Assert.False(result.Canceled);
         Assert.Equal(action, result.Data);
@@ -93,9 +91,6 @@ public sealed class QuasarControlDialogTests
         host.FindAll("button").Single(button => button.TextContent.Contains("Update and Restart Quasar")).Click();
         host.WaitForAssertion(() =>
             Assert.Contains(context.JSInterop.Invocations, invocation => invocation.Identifier == "quasarUi.dialogs.close"));
-        await host.InvokeAsync(() =>
-            host.FindComponent<QuasarDialogInstanceHost>().Instance.OnNativeClosedAsync("close"));
-
         var result = await reference.Result.WaitAsync(TimeSpan.FromSeconds(2));
         Assert.Equal(QuasarControlAction.RestartQuasar, result.Data);
     }
