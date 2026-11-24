@@ -7,13 +7,14 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const fixture = path.dirname(fileURLToPath(import.meta.url));
-const { chromium, firefox } = await import(process.env.PLAYWRIGHT_MODULE
+const playwright = await import(process.env.PLAYWRIGHT_MODULE
     ? pathToFileURL(process.env.PLAYWRIGHT_MODULE).href : "playwright");
+const { chromium, firefox } = playwright.default ?? playwright;
 const output = await mkdtemp(path.join(tmpdir(), "quasar-wasm-plugin-"));
 const host = path.join(output, "host", "wwwroot");
 const plugin = path.join(output, "plugin", "ViewerFixture.dll");
 const mime = { ".js": "text/javascript", ".html": "text/html", ".wasm": "application/wasm",
-    ".json": "application/json", ".dll": "application/octet-stream" };
+    ".json": "application/json", ".dll": "application/octet-stream", ".css": "text/css" };
 
 async function check(browser, prefix) {
     const context = await browser.newContext();
@@ -61,6 +62,47 @@ async function check(browser, prefix) {
         await page.getByRole("button", { name: "Use browser time" }).click();
         await page.getByText("Time zone saved.").waitFor();
         assert.equal(await timeZone.inputValue(), "");
+
+        // Native dialog and toast host through the public UI contract.
+        await page.goto("https://panel.invalid" + prefix + "?ui=1");
+        await page.getByText("UI fixture (test plugin)").waitFor({ timeout: 15000 });
+        await page.getByRole("button", { name: "Open basic dialog" }).click();
+        const surface = page.locator("dialog.quasar-dialog").first();
+        await surface.waitFor({ state: "visible", timeout: 10000 });
+        assert.equal(await surface.evaluate(element => element.open), true);
+        assert.match(await surface.evaluate(element => getComputedStyle(element).backgroundColor), /^rgb/);
+        await page.keyboard.press("Escape");
+        await surface.waitFor({ state: "hidden", timeout: 10000 });
+
+        await page.getByRole("button", { name: "Open sync dialog" }).click();
+        await surface.waitFor({ state: "visible", timeout: 10000 });
+        assert.equal(await surface.evaluate(element => element.open), true);
+        await page.keyboard.press("Escape");
+        await surface.waitFor({ state: "hidden", timeout: 10000 });
+
+        await page.getByRole("button", { name: "Open modeless dialog" }).click();
+        const modeless = page.locator(".quasar-dialog-modeless").first();
+        await modeless.waitFor({ state: "visible", timeout: 10000 });
+        await page.getByRole("button", { name: "Toast: Normal" }).click();
+        await page.locator(".quasar-toast").first().waitFor({ state: "visible", timeout: 10000 });
+        const beforeDrag = await modeless.boundingBox();
+        const dragHandle = page.locator(".quasar-dialog-drag-handle").first();
+        const handleBox = await dragHandle.boundingBox();
+        await page.mouse.move(handleBox.x + handleBox.width / 2, handleBox.y + handleBox.height / 2);
+        await page.mouse.down();
+        await page.mouse.move(handleBox.x + handleBox.width / 2 + 60, handleBox.y + handleBox.height / 2 + 30);
+        await page.mouse.up();
+        const afterDrag = await modeless.boundingBox();
+        assert.notEqual(beforeDrag.x, afterDrag.x);
+        assert.notEqual(beforeDrag.y, afterDrag.y);
+        await page.getByRole("button", { name: "Cancel", exact: true }).click();
+        await modeless.waitFor({ state: "hidden", timeout: 10000 });
+
+        await page.getByRole("button", { name: "Toast: Success" }).click();
+        const toast = page.locator(".quasar-toast").first();
+        await toast.waitFor({ state: "visible", timeout: 10000 });
+        assert.equal(await toast.getAttribute("role"), "status");
+
         assert.deepEqual(errors, []);
         console.log(browser.browserType().name() + ": independent Razor plugin and Display settings passed at " + prefix);
     } finally {
@@ -73,7 +115,7 @@ try {
         { cwd: fixture, stdio: "inherit" });
     execFileSync("dotnet", ["build", "Plugin/ViewerFixture.csproj", "-c", "Release", "-o", path.dirname(plugin)],
         { cwd: fixture, stdio: "inherit" });
-    for (const browserType of [chromium, firefox]) {
+    for (const browserType of (process.env.QUASAR_BROWSER === "chromium" ? [chromium] : [chromium, firefox])) {
         const browser = await browserType.launch(browserType === chromium ? { executablePath: process.env.CHROME_PATH } : {});
         try {
             await check(browser, "/");
