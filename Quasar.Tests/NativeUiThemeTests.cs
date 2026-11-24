@@ -419,7 +419,7 @@ public sealed class NativeAppearanceTests : IDisposable
         registry.UpdateSnapshot(snapshot,"connection");
         context.Services.AddSingleton(registry);
         context.Services.AddSingleton(known);
-        var dialogs = context.Render<MudDialogProvider>();
+        var dialogs = context.Render<QuasarDialogHost>();
         var panel = context.Render<FleetLiveDetails>(p => p.Add(x => x.UniqueName, "alpha").Add(x => x.AgentId, "agent")
             .Add(x => x.CanControl, true).Add(x => x.Running, true).Add(x => x.Connected, true));
         panel.Find("input").Input(" hello fleet ");

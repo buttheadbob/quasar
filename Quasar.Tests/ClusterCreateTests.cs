@@ -101,7 +101,7 @@ public sealed class ClusterCreateTests : IDisposable
     public async Task DefaultPluginsAreOnForANewClusterAndNameWhatTheProfileLacks()
     {
         await using var context = CreateContext();
-        var dialogs = context.Render<MudDialogProvider>();
+        var dialogs = context.Render<QuasarDialogHost>();
         await context.Services.GetRequiredService<QuasarConfigProfileCatalog>().UpsertAsync(new() { ConfigProfileId = "half", Name = "Half",
             Plugins = [new() { PluginId = QuasarDefaultPlugins.BugfixesPluginId, DisplayName = "Bugfixes" }] });
         var page = context.Render<SetupCluster>();
@@ -135,7 +135,7 @@ public sealed class ClusterCreateTests : IDisposable
     public async Task SkippingDefaultAdditionsDoesNotWarnWhenBothPluginsAreAlreadySelected()
     {
         await using var context = CreateContext();
-        var dialogs = context.Render<MudDialogProvider>();
+        var dialogs = context.Render<QuasarDialogHost>();
         var profile = new QuasarConfigProfile { ConfigProfileId = "full", Name = "Full" };
         QuasarDefaultPlugins.Apply(profile, true);
         await context.Services.GetRequiredService<QuasarConfigProfileCatalog>().UpsertAsync(profile);
@@ -456,7 +456,7 @@ public sealed class ClusterCreateTests : IDisposable
     public async Task UnfinishedEnrollmentCanBeCancelledInTheWizard()
     {
         await using var context = CreateContext();
-        var dialogs = context.Render<MudDialogProvider>();
+        var dialogs = context.Render<QuasarDialogHost>();
         var page = context.Render<SetupCluster>();
         await Button(page, "Generate enrollment command").Find("button").ClickAsync();
         var hosts = context.Services.GetRequiredService<ClusterHostCatalog>();
@@ -464,14 +464,14 @@ public sealed class ClusterCreateTests : IDisposable
 
         var removal = Button(page, "Remove enrollment").Find("button").ClickAsync();
         dialogs.WaitForAssertion(() => Assert.Contains("Installed Host files and remote data remain", dialogs.Markup));
-        await dialogs.FindComponents<MudButton>().Single(c => c.Markup.Contains("Cancel")).Find("button").ClickAsync();
+        await dialogs.FindAll("button").Single(button => button.TextContent.Trim() == "Cancel").ClickAsync();
         await removal;
         Assert.Equal(host, Assert.Single(hosts.GetAll()));
         Assert.Contains("Enrollment command", page.Markup);
 
         removal = Button(page, "Remove enrollment").Find("button").ClickAsync();
         dialogs.WaitForAssertion(() => Assert.Contains("Remove enrollment", dialogs.Markup));
-        await dialogs.FindComponents<MudButton>().Single(c => c.Markup.Contains("Remove enrollment")).Find("button").ClickAsync();
+        await dialogs.FindAll("button").Single(button => button.TextContent.Trim() == "Remove enrollment").ClickAsync();
         await removal;
         page.WaitForAssertion(() => Assert.Empty(hosts.GetAll()));
         Assert.DoesNotContain("Enrollment command", page.Markup);
@@ -488,7 +488,7 @@ public sealed class ClusterCreateTests : IDisposable
         var hosts = context.Services.GetRequiredService<ClusterHostCatalog>();
         var remote = await hosts.RegisterAsync("remote", "Abandoned machine", "10.1.0.1", 18400, default);
         await hosts.RegisterAsync("local", "Local machine", "127.0.0.1", 18401, default);
-        var dialogs = context.Render<MudDialogProvider>();
+        var dialogs = context.Render<QuasarDialogHost>();
         var page = context.Render<HostMachines>();
         page.WaitForAssertion(() => Assert.Contains("Abandoned machine", page.Markup));
         var removals = page.FindComponents<MudButton>().Where(c => c.Markup.Contains("Remove enrollment")).ToArray();
@@ -497,7 +497,7 @@ public sealed class ClusterCreateTests : IDisposable
 
         var removal = removals[0].Find("button").ClickAsync();
         dialogs.WaitForAssertion(() => Assert.Contains("Abandoned machine", dialogs.Markup));
-        await dialogs.FindComponents<MudButton>().Single(c => c.Markup.Contains("Remove enrollment")).Find("button").ClickAsync();
+        await dialogs.FindAll("button").Single(button => button.TextContent.Trim() == "Remove enrollment").ClickAsync();
         await removal;
         page.WaitForAssertion(() => Assert.DoesNotContain("Abandoned machine", page.Markup));
         Assert.Null(hosts.Get(remote.Id));

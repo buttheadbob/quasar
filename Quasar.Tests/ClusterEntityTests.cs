@@ -16,6 +16,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using MudBlazor;
 using MudBlazor.Services;
 using Quasar.Components.Pages;
+using Quasar.Components.Shared;
 using Quasar.Models;
 using Quasar.Services;
 using Quasar.Services.Auth;
@@ -200,7 +201,7 @@ public sealed class ClusterEntityTests
         auth.SetAuthorized("editor");
         auth.SetPolicies(QuasarPolicyNames.CanView, QuasarPolicyNames.ClusterQuery, QuasarPolicyNames.CanControlServers, QuasarPolicyNames.ClusterManage);
         var popovers = context.Render<MudPopoverProvider>();
-        var dialogs = context.Render<MudDialogProvider>();
+        var dialogs = context.Render<QuasarDialogHost>();
         var page = context.Render<Quasar.Client.Components.EntitiesView>();
         await page.WaitForAssertionAsync(() => Assert.Equal(2, page.FindAll("tbody tr").Count));
         IReadOnlyList<ServerCommandEnvelope> Actions() => fixture.Commands.Where(command => command.CommandType == ServerCommandType.EntityAction).ToArray();

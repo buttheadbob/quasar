@@ -10,6 +10,8 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Quasar.Client.Administration;
+using Quasar.Components.Shared;
+using Quasar.Ui;
 using Bunit;
 using Magnetar.Protocol.Runtime;
 using Microsoft.AspNetCore.DataProtection;
@@ -187,12 +189,12 @@ public sealed class ReliableUpdateTests : IDisposable
         context.JSInterop.Mode = JSRuntimeMode.Loose;
         context.AddAuthorization().SetAuthorized("admin");
         context.Services.AddSingleton(updater).AddDirectCoreOperations();
-        var provider = context.Render<MudDialogProvider>();
+        var provider = context.Render<QuasarDialogHost>();
         var page = new UpdatesPage();
         const BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic;
         typeof(UpdatesPage).GetProperty("Sdk", flags)!.SetValue(page, new Quasar.Client.DashboardSdk(
             new DashboardTestTransport(context.Services, operation => operation == "updates.dashboard" ? UpdatePageSnapshot(updater.GetSnapshot()) : null)));
-        typeof(UpdatesPage).GetProperty("DialogService", flags)!.SetValue(page, context.Services.GetRequiredService<IDialogService>());
+        typeof(UpdatesPage).GetProperty("DialogService", flags)!.SetValue(page, context.Services.GetRequiredService<IQuasarDialogService>());
         typeof(UpdatesPage).GetProperty("Snackbar", flags)!.SetValue(page, context.Services.GetRequiredService<ISnackbar>());
         typeof(UpdatesPage).GetField("_snapshot", flags)!.SetValue(page, UpdatePageSnapshot(updater.GetSnapshot()));
         typeof(UpdatesPage).GetField("_selectedWebVersion", flags)!.SetValue(page, "1.4.1");

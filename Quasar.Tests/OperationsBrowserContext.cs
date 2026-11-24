@@ -19,7 +19,7 @@ internal sealed class OperationsBrowserContext : QuasarBunitContext
     {
         Services.AddQuasarCoreOperations();
         Services.AddScoped<DashboardSdk>();
-        Services.AddScoped<IJSRuntime>(provider => new BrowserInterop(JSInterop.JSRuntime, provider, storage, () => SelectedZip, openFile));
+        Services.AddScoped<IJSRuntime>(provider => new BrowserInterop(new QuasarDialogJsRuntime(JSInterop.JSRuntime), provider, storage, () => SelectedZip, openFile));
     }
 
     private sealed class BrowserInterop(IJSRuntime javascript, IServiceProvider services, IJSRuntime? storage, Func<byte[]?> selectedZip, Func<string, Stream>? openFile) : IJSRuntime

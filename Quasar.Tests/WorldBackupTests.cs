@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using MudBlazor;
 using MudBlazor.Services;
 using Quasar.Components.Pages;
+using Quasar.Components.Shared;
 using Quasar.Models;
 using Quasar.Services;
 using Quasar.Services.Backup;
@@ -279,7 +280,7 @@ public sealed class WorldBackupTests : IDisposable
         context.Services.AddSingleton(servers).AddSingleton(supervisor).AddSingleton(queue)
             .AddSingleton(backups).AddSingleton(settings).AddSingleton(options).AddDirectCoreOperations();
         context.Services.AddSingleton(provider => new Quasar.Client.DashboardSdk(new DashboardTestTransport(provider)));
-        var provider = context.Render<MudDialogProvider>();
+        var provider = context.Render<QuasarDialogHost>();
         context.Render<MudPopoverProvider>();
         var page = context.Render<Quasar.Client.Administration.Backups>();
         var action = page.Find("button[aria-label='Back up world']").ClickAsync();
@@ -297,7 +298,7 @@ public sealed class WorldBackupTests : IDisposable
         Assert.Equal(expected.HasValue, (bool)reader.GetType().GetMethod("TryRead")!.Invoke(reader, arguments)!);
         if (expected.HasValue)
             Assert.Equal(expected.Value, arguments[0]!.GetType().GetProperty("WorldAction")!.GetValue(arguments[0]));
-        Assert.Empty(provider.FindAll(".mud-dialog"));
+        Assert.Empty(provider.FindAll(".quasar-dialog"));
         Assert.False(commands.Reader.TryRead(out _));
     }
 

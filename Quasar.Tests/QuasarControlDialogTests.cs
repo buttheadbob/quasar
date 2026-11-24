@@ -57,7 +57,6 @@ public sealed class QuasarControlDialogTests
         host.WaitForAssertion(() => Assert.Contains(buttonText, host.Markup));
 
         host.FindAll("button").Single(button => button.TextContent.Contains(buttonText)).Click();
-        host.FindAll("button").Single(button => button.TextContent.Contains(buttonText)).Click();
         host.WaitForAssertion(() =>
             Assert.Contains(context.JSInterop.Invocations, invocation => invocation.Identifier == "quasarUi.dialogs.close"));
         await host.InvokeAsync(() =>
